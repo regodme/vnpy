@@ -1,7 +1,21 @@
-pymongo 
-websocket-client
-msgpack-python
+PyQt5
+pyqtgraph
+dataclasses; python_version<="3.6"
 qdarkstyle
-SortedContainers
-futuquant
-snappy
+requests
+websocket-client
+peewee
+pymysql
+psycopg2
+mongoengine
+numpy
+pandas==0.24
+matplotlib
+seaborn
+futu-api
+tigeropen
+rqdatac
+ta-lib
+ibapi
+deap
+pyzmq
