@@ -283,6 +283,16 @@ class MainEngine(object):
         return self.dataEngine.getAllWorkingOrders()
     
     #----------------------------------------------------------------------
+    def getAllOrders(self):
+        """查询所有委托"""
+        return self.dataEngine.getAllOrders()
+    
+    #----------------------------------------------------------------------
+    def getAllPositionDetails(self):
+        """查询本地持仓缓存细节"""
+        return self.dataEngine.getAllPositionDetails()
+    
+    #----------------------------------------------------------------------
     def getAllGatewayDetails(self):
         """查询引擎中所有底层接口的信息"""
         return self.gatewayDetailList
@@ -330,7 +340,8 @@ class MainEngine(object):
     #----------------------------------------------------------------------
     def registerLogEvent(self, eventType):
         """注册日志事件监听"""
-        self.eventEngine.register(eventType, self.logEngine.processLogEvent)
+        if self.logEngine:
+            self.eventEngine.register(eventType, self.logEngine.processLogEvent)
     
     #----------------------------------------------------------------------
     def convertOrderReq(self, req):
@@ -420,7 +431,7 @@ class DataEngine(object):
         # 更新到持仓细节中
         detail = self.getPositionDetail(pos.vtSymbol)
         detail.updatePosition(pos)                
-    
+        
     #----------------------------------------------------------------------
     def getContract(self, vtSymbol):
         """查询合约对象"""
@@ -465,6 +476,11 @@ class DataEngine(object):
         return self.workingOrderDict.values()
     
     #----------------------------------------------------------------------
+    def getAllOrders(self):
+        """获取所有委托"""
+        return self.orderDict.values()
+    
+    #----------------------------------------------------------------------
     def getPositionDetail(self, vtSymbol):
         """查询持仓细节"""
         if vtSymbol in self.detailDict:
@@ -489,6 +505,11 @@ class DataEngine(object):
                         detail.mode = detail.MODE_TDPENALTY
                 
         return detail
+    
+    #----------------------------------------------------------------------
+    def getAllPositionDetails(self):
+        """查询所有本地持仓缓存细节"""
+        return self.detailDict.values()
     
     #----------------------------------------------------------------------
     def updateOrderReq(self, req, vtOrderID):
@@ -730,7 +751,7 @@ class PositionDetail(object):
             self.shortYd = pos.ydPosition
             self.shortTd = self.shortPos - self.shortYd
             
-        self.output()
+        #self.output()
     
     #----------------------------------------------------------------------
     def updateOrderReq(self, req, vtOrderID):
@@ -759,7 +780,7 @@ class PositionDetail(object):
         self.longPos = self.longTd + self.longYd
         self.shortPos = self.shortTd + self.shortYd      
         
-        self.output()
+        #self.output()
         
     #----------------------------------------------------------------------
     def calculateFrozen(self):
@@ -812,7 +833,7 @@ class PositionDetail(object):
             self.longPosFrozen = self.longYdFrozen + self.longTdFrozen
             self.shortPosFrozen = self.shortYdFrozen + self.shortTdFrozen
         
-        self.output()
+        #self.output()
             
     #----------------------------------------------------------------------
     def output(self):

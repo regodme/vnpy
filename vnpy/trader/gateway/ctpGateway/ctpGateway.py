@@ -65,6 +65,8 @@ productClassMap[PRODUCT_FUTURES] = defineDict["THOST_FTDC_PC_Futures"]
 productClassMap[PRODUCT_OPTION] = defineDict["THOST_FTDC_PC_Options"]
 productClassMap[PRODUCT_COMBINATION] = defineDict["THOST_FTDC_PC_Combination"]
 productClassMapReverse = {v:k for k,v in productClassMap.items()}
+productClassMapReverse[defineDict["THOST_FTDC_PC_ETFOption"]] = PRODUCT_OPTION
+productClassMapReverse[defineDict["THOST_FTDC_PC_Stock"]] = PRODUCT_EQUITY
 
 # 委托状态映射
 statusMap = {}
@@ -340,12 +342,17 @@ class CtpMdApi(MdApi):
     #----------------------------------------------------------------------  
     def onRtnDepthMarketData(self, data):
         """行情推送"""
+        # 过滤尚未获取合约交易所时的行情推送
+        symbol = data['InstrumentID']
+        if symbol not in symbolExchangeDict:
+            return
+        
         # 创建对象
         tick = VtTickData()
         tick.gatewayName = self.gatewayName
         
-        tick.symbol = data['InstrumentID']
-        tick.exchange = symbolExchangeDict.get(tick.symbol, EXCHANGE_UNKNOWN)
+        tick.symbol = symbol
+        tick.exchange = symbolExchangeDict[tick.symbol]
         tick.vtSymbol = tick.symbol #'.'.join([tick.symbol, tick.exchange])
         
         tick.lastPrice = data['LastPrice']
@@ -736,7 +743,7 @@ class CtpTdApi(TdApi):
         pos.positionProfit += data['PositionProfit']
         
         # 计算持仓均价
-        if pos.position and pos.symbol in self.symbolSizeDict:    
+        if pos.position and size:    
             pos.price = (cost + data['PositionCost']) / (pos.position * size)
         
         # 读取冻结
@@ -827,8 +834,8 @@ class CtpTdApi(TdApi):
         contract.priceTick = data['PriceTick']
         contract.strikePrice = data['StrikePrice']
         contract.underlyingSymbol = data['UnderlyingInstrID']
-
         contract.productClass = productClassMapReverse.get(data['ProductClass'], PRODUCT_UNKNOWN)
+        contract.expiryDate = data['ExpireDate']
         
         # 期权类型
         if contract.productClass is PRODUCT_OPTION:
